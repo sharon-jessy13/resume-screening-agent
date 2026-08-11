@@ -1,0 +1,37 @@
+We are seeking an experienced Lead Full Stack Developer to drive the design, development, security, and delivery of the mySchneider web application ecosystem. The role combines hands-on full-stack development, solution architecture, technical leadership, Agile delivery, and stakeholder collaboration.
+
+Responsibilities
+Lead end-to-end design, development and maintenance of mySchneider web application.
+Develop responsive user interfaces using React JS, Angular, TypeScript, HTML5, CSS3 and Bootstrap.
+Build scalable backend services and APIs using Node.js and RESTful architecture.
+Implement integration solutions using REST APIs, WebSockets, MQTT and enterprise services.
+Collaborate with product owners, UX teams and business stakeholders to translate requirements into technical solutions.
+Drive Agile/Scrum delivery, sprint planning and release execution.
+Prepare architecture diagrams, design documents and technical specifications.
+Perform code reviews, mentoring and technical coaching for development teams.
+Support CI/CD implementation, automated testing and deployment activities.
+Key Skills
+React JS
+Angular
+Node JS
+TypeScript
+HTML5
+CSS3
+REST APIs
+WebSockets
+AWS
+Qualifications
+B.E. / B.Tech / M.E. / M.Tech in Computer Science, Information Technology or related
+
+
+Disclaimer: This job description has been sourced from a public domain and may have been modified by Naukri.com to improve clarity for our users. We encourage job seekers to verify all details directly with the employer via their official channels before applying.
+Role: Full Stack Developer
+Industry Type: Electrical Equipment
+Department: Engineering - Software & QA
+Employment Type: Full Time, Permanent
+Role Category: Software Development
+Education
+UG: Any Graduate
+PG: Any Postgraduate
+Key Skills
+information technologyhtml5full stack developerautomated testingbootstrapagile deliverycybersecurityjavascriptangularautomationapiscompliancedesign patternsagilefull-stack developmentawscss3architecturedeployment
