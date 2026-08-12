@@ -66,6 +66,7 @@ def score_resume(resume_fields: dict, jd_fields: dict) -> dict:
         jd_fields.get("required_skills", []),
     )
 
+    # final score calculation
     final = (SEMANTIC_WEIGHT * semantic_score + OVERLAP_WEIGHT * overlap_ratio) * 100
 
     exp_candidate = resume_fields.get("years_experience", 0) or 0
