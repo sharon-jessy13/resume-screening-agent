@@ -1,27 +1,22 @@
 # Resume Screening Agent
-
 An AI-powered Resume Screening Agent that analyzes a Job Description (JD), extracts structured information from multiple resumes, calculates candidate relevance scores, ranks candidates, and generates machine-readable output.
-
 The system uses Google's Gemini API to process the Job Description and multiple resumes in a single extraction request.
-
 ---
-
 ## Features
-
 - Extracts structured information from a Job Description
 - Processes 10+ resumes in a single run
 - Sends the JD and all resumes to Gemini in one request
 - Extracts:
-  - Candidate name
-  - Skills
-  - Years of experience
-  - Education
-  - Resume summary
+  - Candidate name
+  - Skills
+  - Years of experience
+  - Education
+  - Resume summary
 - Extracts:
-  - Job title
-  - Required skills
-  - Minimum experience
-  - Job summary
+  - Job title
+  - Required skills
+  - Minimum experience
+  - Job summary
 - Normalizes and deduplicates skills
 - Calculates candidate relevance scores
 - Calculates skill overlap
@@ -33,38 +28,35 @@ The system uses Google's Gemini API to process the Job Description and multiple 
 - Supports CSV output
 - Includes automated tests using pytest
 - Designed to avoid making one Gemini request per resume
-
 ---
-
 ## Project Structure
-
 ```text
 resume-screening-agent/
 │
 ├── agent/
-│   ├── __init__.py
-│   ├── extractor.py
-│   ├── scorer.py
-│   └── ranker.py
+│   ├── __init__.py
+│   ├── extractor.py
+│   ├── scorer.py
+│   └── ranker.py
 │
 ├── data/
-│   ├── jd.txt
-│   └── resumes/
-│       ├── Candidate_01_Aarav_Shah.pdf
-│       ├── Candidate_02_Priya_Nair.pdf
-│       ├── Candidate_03_Rohan_Mehta.pdf
-│       ├── Candidate_04_Ananya_Rao.pdf
-│       ├── Candidate_05_Vikram_Singh.pdf
-│       └── ...
+│   ├── jd.txt
+│   └── resumes/
+│       ├── Candidate_01_Aarav_Shah.pdf
+│       ├── Candidate_02_Priya_Nair.pdf
+│       ├── Candidate_03_Rohan_Mehta.pdf
+│       ├── Candidate_04_Ananya_Rao.pdf
+│       ├── Candidate_05_Vikram_Singh.pdf
+│       └── ...
 │
 ├── output/
-│   ├── ranked_candidates.json
-│   └── ranked_candidates.csv
+│   ├── ranked_candidates.json
+│   └── ranked_candidates.csv
 │
 ├── tests/
-│   ├── __init__.py
-│   ├── test_ranker.py
-│   └── test_scorer.py
+│   ├── __init__.py
+│   ├── test_ranker.py
+│   └── test_scorer.py
 │
 ├── main.py
 ├── requirements.txt
@@ -75,49 +67,49 @@ resume-screening-agent/
 
 ---
 
-## **How the System Works**
+\## How the System Works
 
-1. How the System Works
+1\. How the System Works
 
 The application follows this pipeline:
 
-                 Job Description
-                       │
-                       ▼
-                 Gemini API
-                       │
-                       ▼
-              JD Structured Data
-                       │
-                       │
-                       ▼
-        ┌──────────────────────────┐
-        │      Multiple Resumes    │
-        │                          │
-        │ Resume 1                 │
-        │ Resume 2                 │
-        │ Resume 3                 │
-        │ ...                      │
-        │ Resume 10                │
-        └──────────────────────────┘
-                       │
-                       ▼
-                 Gemini API
-             ONE extraction request
-                       │
-                       ▼
-              Resume Structured Data
-                       │
-                       ▼
-                   Scoring
-                       │
-                       ▼
-                   Ranking
-                       │
-             ┌─────────┴─────────┐
-             ▼                   ▼
-        ranked JSON          ranked CSV
-2. Gemini Batch Processing
+                 Job Description
+                       │
+                       ▼
+                 Gemini API
+                       │
+                       ▼
+              JD Structured Data
+                       │
+                       │
+                       ▼
+        ┌──────────────────────────┐
+        │      Multiple Resumes    │
+        │                          │
+        │ Resume 1                 │
+        │ Resume 2                 │
+        │ Resume 3                 │
+        │ ...                      │
+        │ Resume 10                │
+        └──────────────────────────┘
+                       │
+                       ▼
+                 Gemini API
+             ONE extraction request
+                       │
+                       ▼
+              Resume Structured Data
+                       │
+                       ▼
+                   Scoring
+                       │
+                       ▼
+                   Ranking
+                       │
+             ┌─────────┴─────────┐
+             ▼                   ▼
+        ranked JSON          ranked CSV
+2\. Gemini Batch Processing
 
 The application is designed to process multiple resumes in a single Gemini request.
 
@@ -145,19 +137,19 @@ for the complete batch.
 
 This significantly reduces the number of Gemini API requests.
 
-3. Scoring
+3\. Scoring
 
 The candidate score is calculated using two main signals:
 
 Semantic Similarity
-+
+\+
 Skill Overlap
 
 The scoring formula is:
 
 Final Score =
-    0.7 × Semantic Similarity
-  + 0.3 × Skill Overlap
+    0.7 × Semantic Similarity
+  + 0.3 × Skill Overlap
 
 The result is converted to a percentage from 0 to 100.
 
@@ -194,8 +186,8 @@ Node.js
 Therefore:
 
 Skill Overlap = 2 / 5
-               = 40%
-4. Experience Check
+               = 40%
+4\. Experience Check
 
 The system also compares:
 
@@ -222,7 +214,7 @@ Candidate experience: 1 year
 Result:
 
 Meets requirement: False
-5. Explainable Ranking
+5\. Explainable Ranking
 
 The ranking system generates deterministic explanations.
 
@@ -237,7 +229,7 @@ The reasoning is generated without another Gemini request.
 
 This makes the ranking easier to audit.
 
-6. Requirements
+6\. Requirements
 
 The project requires:
 
@@ -251,7 +243,7 @@ Python 3.11
 
 Python 3.10 may work, but newer versions are recommended for compatibility with current Google packages.
 
-7. Installation
+7\. Installation
 
 Clone the project or open the project directory.
 
@@ -266,7 +258,7 @@ venv\Scripts\activate
 Install dependencies:
 
 pip install -r requirements.txt
-8. Gemini API Key
+8\. Gemini API Key
 
 Create a Gemini API key from Google's Gemini developer platform.
 
@@ -287,9 +279,9 @@ Example:
 .env
 venv/
 __pycache__/
-*.pyc
+\*.pyc
 output/
-9. Environment File
+9\. Environment File
 
 A safe .env.example file can contain:
 
@@ -297,7 +289,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 Copy .env.example to .env and replace the placeholder with your actual API key.
 
-10. Input Files
+10\. Input Files
 Job Description
 
 Place the Job Description here:
@@ -340,7 +332,7 @@ data/resumes/
 
 The application automatically detects the PDF files in this directory.
 
-11. Running the Application
+11\. Running the Application
 
 Make sure the virtual environment is active:
 
@@ -361,7 +353,7 @@ Calculate candidate scores
 Rank candidates
 Save JSON output
 Save CSV output
-12. Example Console Output
+12\. Example Console Output
 RESUME SCREENING AGENT
 
 Loading JD from data/jd.txt ...
@@ -387,13 +379,13 @@ output/ranked_candidates.json
 CSV results saved to:
 output/ranked_candidates.csv
 
-1. Vikram Singh -> 67.71%
-2. Aarav Shah -> 49.69%
-3. Priya Nair -> 48.72%
-4. Ananya Rao -> 42.74%
-5. Rohan Mehta -> 39.37%
+1\. Vikram Singh -> 67.71%
+2\. Aarav Shah -> 49.69%
+3\. Priya Nair -> 48.72%
+4\. Ananya Rao -> 42.74%
+5\. Rohan Mehta -> 39.37%
 ...
-13. JSON Output
+13\. JSON Output
 
 The application generates:
 
@@ -402,36 +394,36 @@ output/ranked_candidates.json
 The JSON contains information such as:
 
 {
-    "rank": 1,
-    "filename": "Candidate_05_Vikram_Singh.pdf",
-    "resume_fields": {
-        "name": "Vikram Singh",
-        "skills": [
-            "react",
-            "node.js",
-            "javascript"
-        ],
-        "years_experience": 3,
-        "education": "Bachelor of Engineering",
-        "summary": "..."
-    },
-    "score_info": {
-        "final_score": 67.71,
-        "semantic_score": 72.45,
-        "skill_overlap_score": 56.67,
-        "matched_skills": [
-            "react",
-            "javascript"
-        ],
-        "missing_skills": [
-            "aws"
-        ],
-        "years_experience": 3,
-        "meets_experience_requirement": true
-    },
-    "reasoning": "..."
+    "rank": 1,
+    "filename": "Candidate_05_Vikram_Singh.pdf",
+    "resume_fields": {
+        "name": "Vikram Singh",
+        "skills": [
+            "react",
+            "node.js",
+            "javascript"
+        ],
+        "years_experience": 3,
+        "education": "Bachelor of Engineering",
+        "summary": "..."
+    },
+    "score_info": {
+        "final_score": 67.71,
+        "semantic_score": 72.45,
+        "skill_overlap_score": 56.67,
+        "matched_skills": [
+            "react",
+            "javascript"
+        ],
+        "missing_skills": [
+            "aws"
+        ],
+        "years_experience": 3,
+        "meets_experience_requirement": true
+    },
+    "reasoning": "..."
 }
-14. CSV Output
+14\. CSV Output
 
 The application also generates:
 
@@ -460,7 +452,7 @@ Missing Skills
 Education
 Summary
 Reasoning
-15. Running Tests
+15\. Running Tests
 
 The project includes unit tests using pytest.
 
@@ -470,9 +462,9 @@ pytest
 
 Expected result:
 
-================================
+\================================
 4 passed
-================================
+\================================
 
 The tests cover:
 
@@ -486,7 +478,7 @@ The tests do not require a Gemini API call.
 
 This makes them fast and suitable for local development.
 
-16. Testing Structure
+16\. Testing Structure
 
 The project contains:
 
@@ -507,7 +499,7 @@ test_ranker.py
 
 tests whether candidates are sorted correctly according to their final score.
 
-17. Important Gemini API Considerations
+17\. Important Gemini API Considerations
 
 Gemini API usage is subject to project/model quotas and rate limits.
 
@@ -518,7 +510,7 @@ The application therefore avoids sending one request for every resume.
 Instead:
 
 10 resumes
-      ↓
+      ↓
 1 Gemini extraction request
 
 is used.
@@ -532,7 +524,7 @@ Reduce resume text length
 Use an appropriate Gemini model
 Increase available API quota
 Use a paid API project if required
-18. Large Resume Collections
+18\. Large Resume Collections
 
 For 10 resumes, a single request can work when the combined input fits within the model's context limits.
 
@@ -553,7 +545,7 @@ Batch 3 → Resumes 21-30
 
 This prevents excessively large prompts and reduces the possibility of server-side failures.
 
-19. Error Handling
+19\. Error Handling
 
 The application handles common issues such as:
 
@@ -592,7 +584,7 @@ This can happen when the model is temporarily experiencing high demand.
 
 Retrying later or using an available model/project can resolve the issue.
 
-20. Deterministic Scoring
+20\. Deterministic Scoring
 
 The ranking calculation itself is deterministic once the extracted candidate data is available.
 
@@ -609,7 +601,7 @@ The Gemini extraction stage can still produce slightly different structured outp
 
 Therefore, if the extracted skills or summaries change, the final score may also change.
 
-21. Technologies Used
+21\. Technologies Used
 Programming Language
 Python
 AI
@@ -624,7 +616,7 @@ Testing
 pytest
 Resume Processing
 PDF text extraction
-22. Main Components
+22\. Main Components
 main.py
 
 Responsible for the application workflow.
@@ -690,21 +682,21 @@ final_score
 
 in descending order.
 
-23. Example Ranking
+23\. Example Ranking
 
 Example:
 
-Rank  Candidate              Score
+Rank  Candidate              Score
 ------------------------------------------------
-1     Vikram Singh           67.71%
-2     Aarav Shah             49.69%
-3     Priya Nair             48.72%
-4     Ananya Rao             42.74%
-5     Rohan Mehta             39.37%
+1     Vikram Singh           67.71%
+2     Aarav Shah             49.69%
+3     Priya Nair             48.72%
+4     Ananya Rao             42.74%
+5     Rohan Mehta             39.37%
 
 The candidate with the highest final score receives rank 1.
 
-24. Advantages
+24\. Advantages
 
 This project provides:
 
@@ -722,7 +714,7 @@ Automated tests
 
 It reduces the manual effort required to compare multiple resumes against a Job Description.
 
-25. Limitations
+25\. Limitations
 
 The system relies on AI-generated extraction, so extracted information may not always be perfect.
 
@@ -738,7 +730,7 @@ Temporary Gemini API availability issues
 
 The results should therefore be treated as a screening aid rather than a replacement for human recruitment decisions.
 
-26. Security
+26\. Security
 
 Never commit your Gemini API key.
 
@@ -757,36 +749,36 @@ and add it to:
 Use .env.example as a template:
 
 GEMINI_API_KEY=your_gemini_api_key_here
-27. Recommended .gitignore
-# Virtual environment
+27\. Recommended .gitignore
+\# Virtual environment
 venv/
 .venv/
 
-# Environment variables
+\# Environment variables
 .env
 
-# Python cache
+\# Python cache
 __pycache__/
-*.py[cod]
+\*.py[cod]
 
-# Pytest
+\# Pytest
 .pytest_cache/
 
-# Generated output
+\# Generated output
 output/
 
-# IDE
+\# IDE
 .vscode/
 .idea/
 
-# OS files
+\# OS files
 .DS_Store
 Thumbs.db
-28. Quick Start
+28\. Quick Start
 
 For a quick setup:
 
-git clone <repository-url>
+git clone \<repository-url>
 
 cd resume-screening-agent
 
@@ -824,15 +816,15 @@ Check results:
 
 output/ranked_candidates.json
 output/ranked_candidates.csv
-29. Expected Final Output
+29\. Expected Final Output
 
 After successful execution:
 
 resume-screening-agent/
 │
 ├── output/
-│   ├── ranked_candidates.json
-│   └── ranked_candidates.csv
+│   ├── ranked_candidates.json
+│   └── ranked_candidates.csv
 │
 └── ...
 
@@ -840,18 +832,18 @@ The JSON contains the complete structured screening results.
 
 The CSV provides a convenient table for reviewing and comparing candidates.
 
-30. Project Goal
+30\. Project Goal
 
 The goal of this project is to build an AI-assisted resume screening system that can efficiently process multiple resumes against a Job Description and provide:
 
 Extraction
-     ↓
+     ↓
 Scoring
-     ↓
+     ↓
 Ranking
-     ↓
+     ↓
 Explanation
-     ↓
+     ↓
 JSON + CSV
 
 The system is designed to make resume screening faster, more structured, and easier to audit while keeping the final recruitment decision with a human reviewer.
