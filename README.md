@@ -75,7 +75,7 @@ resume-screening-agent/
 
 ---
 
-## How the System Works
+## **How the System Works**
 
 1. How the System Works
 
