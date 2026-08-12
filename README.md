@@ -73,6 +73,10 @@ resume-screening-agent/
 ├── .gitignore
 └── README.md
 
+---
+
+## How the System Works
+
 1. How the System Works
 
 The application follows this pipeline:
