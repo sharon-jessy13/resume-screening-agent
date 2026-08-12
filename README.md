@@ -654,3 +654,15 @@ The goal of this project is to demonstrate an explainable AI-assisted resume scr
 - Rank candidates automatically.
 - Provide human-readable explanations.
 - Export results in both machine-readable JSON and spreadsheet-friendly CSV formats.
+
+
+---
+
+## Author
+
+**Sharon Jessy T S**
+
+Information Science Engineering  
+B.E. (2022–2026)
+
+GitHub: **sharon-jessy13**
