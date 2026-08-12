@@ -1,56 +1,164 @@
 """
 ranker.py
-Combines extraction + scoring results into a ranked shortlist, with a
-human-readable reasoning string generated deterministically (no extra LLM
-call) so every score is fully auditable.
+
+Ranks candidates using the deterministic final score.
+
+No Gemini calls are made here.
 """
 
 
-def _build_reasoning(score_info: dict) -> str:
-    matched = score_info["matched_skills"]
-    missing = score_info["missing_skills"]
+def _build_reasoning(
+    score_info: dict
+) -> str:
+
+    matched = score_info.get(
+        "matched_skills",
+        []
+    )
+
+    missing = score_info.get(
+        "missing_skills",
+        []
+    )
 
     parts = []
 
+    # --------------------------------------------------------
+    # Matched skills
+    # --------------------------------------------------------
+
     if matched:
-        shown = ", ".join(matched[:6])
-        extra = f" (+{len(matched) - 6} more)" if len(matched) > 6 else ""
-        parts.append(f"Matches {len(matched)} required skill(s): {shown}{extra}.")
+
+        shown = ", ".join(
+            matched[:6]
+        )
+
+        extra = ""
+
+        if len(matched) > 6:
+
+            extra = (
+                f" (+{len(matched) - 6} more)"
+            )
+
+        parts.append(
+            f"Matches {len(matched)} "
+            f"required skill(s): "
+            f"{shown}{extra}."
+        )
+
     else:
-        parts.append("No direct overlap with the required skill list.")
+
+        parts.append(
+            "No direct overlap with "
+            "the required skill list."
+        )
+
+    # --------------------------------------------------------
+    # Missing skills
+    # --------------------------------------------------------
 
     if missing:
-        shown = ", ".join(missing[:6])
-        extra = f" (+{len(missing) - 6} more)" if len(missing) > 6 else ""
-        parts.append(f"Missing: {shown}{extra}.")
 
-    if score_info["meets_experience_requirement"]:
-        parts.append(f"Meets experience requirement ({score_info['years_experience']} yrs).")
+        shown = ", ".join(
+            missing[:6]
+        )
+
+        extra = ""
+
+        if len(missing) > 6:
+
+            extra = (
+                f" (+{len(missing) - 6} more)"
+            )
+
+        parts.append(
+            f"Missing: "
+            f"{shown}{extra}."
+        )
+
+    # --------------------------------------------------------
+    # Experience
+    # --------------------------------------------------------
+
+    years = score_info.get(
+        "years_experience",
+        0
+    )
+
+    required = score_info.get(
+        "required_experience",
+        0
+    )
+
+    if score_info.get(
+        "meets_experience_requirement",
+        False
+    ):
+
+        if required > 0:
+
+            parts.append(
+                f"Meets experience requirement "
+                f"({years} yrs vs {required} yrs required)."
+            )
+
+        else:
+
+            parts.append(
+                f"Experience: {years} yrs."
+            )
+
     else:
-        parts.append(f"Below required experience (has {score_info['years_experience']} yrs).")
+
+        parts.append(
+            f"Below required experience "
+            f"({years} yrs vs {required} yrs required)."
+        )
+
+    # --------------------------------------------------------
+    # Score breakdown
+    # --------------------------------------------------------
 
     parts.append(
-        f"Semantic fit {score_info['semantic_score']}%, "
-        f"skill overlap {score_info['skill_overlap_score']}%."
+        f"Skill score "
+        f"{score_info.get('skill_score', 0)}%, "
+        f"experience score "
+        f"{score_info.get('experience_score', 0)}%, "
+        f"education score "
+        f"{score_info.get('education_score', 0)}%."
     )
 
     return " ".join(parts)
 
 
-def rank_candidates(results: list) -> list:
-    """
-    results: list of dicts, each containing at least:
-      { "filename": ..., "resume_fields": {...}, "score_info": {...} }
+def rank_candidates(
+    results: list
+) -> list:
 
-    Returns the same list, sorted descending by final_score, with a
-    "reasoning" and "rank" field added.
-    """
-    for r in results:
-        r["reasoning"] = _build_reasoning(r["score_info"])
+    for result in results:
 
-    ranked = sorted(results, key=lambda r: r["score_info"]["final_score"], reverse=True)
+        result["reasoning"] = _build_reasoning(
+            result["score_info"]
+        )
 
-    for i, r in enumerate(ranked, start=1):
-        r["rank"] = i
+    # Highest score first
+    ranked = sorted(
+        results,
+        key=lambda result:
+            result["score_info"].get(
+                "final_score",
+                0
+            ),
+        reverse=True
+    )
+
+    # Add rank
+    for index, result in enumerate(
+        ranked,
+        start=1
+    ):
+
+        result["rank"] = index
 
     return ranked

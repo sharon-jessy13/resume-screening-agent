@@ -1,84 +1,383 @@
 """
 scorer.py
-Computes a relevance score between a resume and a JD using two real,
-explainable signals:
 
-1. Semantic similarity  - cosine similarity between Gemini embeddings
-                           of the resume summary and the JD summary
-2. Skill overlap         - fraction of JD-required skills present in
-                           the candidate's extracted skill list
+Deterministic resume scoring.
 
-final_score = 0.7 * semantic + 0.3 * overlap   (0-100 scale)
+The score does NOT call Gemini.
 
-Weights are configurable via SEMANTIC_WEIGHT / OVERLAP_WEIGHT below.
+This means the same resume + same JD
+will produce the same percentage every run.
+
+Scoring:
+
+    Skill Match       = 60%
+    Experience Match  = 25%
+    Education Match   = 15%
+
+Final score = weighted total
 """
 
-import numpy as np
-import google.generativeai as genai
-
-EMBEDDING_MODEL = "models/gemini-embedding-2"
-SEMANTIC_WEIGHT = 0.7
-OVERLAP_WEIGHT = 0.3
+import re
 
 
-def _embed(text: str) -> np.ndarray:
-    result = genai.embed_content(model=EMBEDDING_MODEL, content=text)
-    return np.array(result["embedding"])
+# ============================================================
+# WEIGHTS
+# ============================================================
+
+SKILL_WEIGHT = 0.60
+EXPERIENCE_WEIGHT = 0.25
+EDUCATION_WEIGHT = 0.15
 
 
-def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
-    denom = (np.linalg.norm(a) * np.linalg.norm(b))
-    if denom == 0:
-        return 0.0
-    return float(np.dot(a, b) / denom)
+# ============================================================
+# NORMALIZE TEXT
+# ============================================================
 
+def _normalize(text: str) -> str:
 
-def _skill_overlap(resume_skills: list, required_skills: list) -> tuple:
-    """Returns (overlap_ratio, matched_skills, missing_skills)."""
-    resume_set = set(s.lower().strip() for s in resume_skills)
-    required_set = set(s.lower().strip() for s in required_skills)
+    if not text:
+        return ""
 
-    if not required_set:
-        return 0.0, [], []
+    text = text.lower().strip()
 
-    matched = sorted(resume_set & required_set)
-    missing = sorted(required_set - resume_set)
-    ratio = len(matched) / len(required_set)
-    return ratio, matched, missing
+    # Normalize common variations
+    replacements = {
+        "reactjs": "react",
+        "react.js": "react",
+        "node.js": "node js",
+        "nodejs": "node js",
+        "typescript.js": "typescript",
+        "rest apis": "rest api",
+        "restful apis": "rest api",
+        "restful api": "rest api",
+        "html5": "html",
+        "css3": "css",
+        "web sockets": "websockets",
+        "ci cd": "ci/cd",
+        "cicd": "ci/cd",
+    }
 
+    for old, new in replacements.items():
+        text = text.replace(
+            old,
+            new
+        )
 
-def score_resume(resume_fields: dict, jd_fields: dict) -> dict:
-    resume_summary = resume_fields.get("summary") or ""
-    jd_summary = jd_fields.get("summary") or ""
-
-    # Fall back to skill list text if summary is empty, so embedding still works
-    if not resume_summary.strip():
-        resume_summary = ", ".join(resume_fields.get("skills", []))
-    if not jd_summary.strip():
-        jd_summary = ", ".join(jd_fields.get("required_skills", []))
-
-    resume_vec = _embed(resume_summary)
-    jd_vec = _embed(jd_summary)
-    semantic_score = max(0.0, _cosine_similarity(resume_vec, jd_vec))  # clip negatives
-
-    overlap_ratio, matched, missing = _skill_overlap(
-        resume_fields.get("skills", []),
-        jd_fields.get("required_skills", []),
+    # Remove punctuation except slash
+    text = re.sub(
+        r"[^a-z0-9+#./ -]",
+        " ",
+        text
     )
 
-    # final score calculation
-    final = (SEMANTIC_WEIGHT * semantic_score + OVERLAP_WEIGHT * overlap_ratio) * 100
+    text = re.sub(
+        r"\s+",
+        " ",
+        text
+    )
 
-    exp_candidate = resume_fields.get("years_experience", 0) or 0
-    exp_required = jd_fields.get("min_years_experience", 0) or 0
-    meets_experience = exp_candidate >= exp_required
+    return text.strip()
+
+
+# ============================================================
+# NORMALIZE SKILL
+# ============================================================
+
+def _normalize_skill(
+    skill: str
+) -> str:
+
+    return _normalize(skill)
+
+
+# ============================================================
+# SKILL OVERLAP
+# ============================================================
+
+def _skill_overlap(
+    resume_skills: list,
+    required_skills: list
+):
+
+    resume_set = {
+        _normalize_skill(skill)
+        for skill in resume_skills
+        if skill
+    }
+
+    required_set = {
+        _normalize_skill(skill)
+        for skill in required_skills
+        if skill
+    }
+
+    resume_set.discard("")
+    required_set.discard("")
+
+    if not required_set:
+
+        return 0.0, [], []
+
+    matched = sorted(
+        resume_set.intersection(
+            required_set
+        )
+    )
+
+    missing = sorted(
+        required_set.difference(
+            resume_set
+        )
+    )
+
+    ratio = (
+        len(matched) /
+        len(required_set)
+    )
+
+    return (
+        ratio,
+        matched,
+        missing
+    )
+
+
+# ============================================================
+# EXPERIENCE SCORE
+# ============================================================
+
+def _experience_score(
+    candidate_years,
+    required_years
+):
+
+    candidate_years = float(
+        candidate_years or 0
+    )
+
+    required_years = float(
+        required_years or 0
+    )
+
+    # If JD does not specify experience,
+    # don't penalize candidates.
+    if required_years <= 0:
+
+        return 1.0
+
+    if candidate_years >= required_years:
+
+        return 1.0
+
+    # Partial credit
+    score = (
+        candidate_years /
+        required_years
+    )
+
+    return max(
+        0.0,
+        min(
+            score,
+            1.0
+        )
+    )
+
+
+# ============================================================
+# EDUCATION SCORE
+# ============================================================
+
+def _education_score(
+    education: str
+):
+
+    if not education:
+
+        return 0.0
+
+    education = _normalize(
+        education
+    )
+
+    # Basic education hierarchy
+    if any(
+        word in education
+        for word in [
+            "phd",
+            "doctorate"
+        ]
+    ):
+
+        return 1.0
+
+    if any(
+        word in education
+        for word in [
+            "master",
+            "m.tech",
+            "mtech",
+            "mca",
+            "mba",
+            "msc",
+            "m.sc"
+        ]
+    ):
+
+        return 1.0
+
+    if any(
+        word in education
+        for word in [
+            "bachelor",
+            "b.e",
+            "be ",
+            "btech",
+            "b.tech",
+            "bca",
+            "bsc",
+            "b.sc"
+        ]
+    ):
+
+        return 0.90
+
+    if any(
+        word in education
+        for word in [
+            "diploma"
+        ]
+    ):
+
+        return 0.70
+
+    return 0.50
+
+
+# ============================================================
+# SCORE RESUME
+# ============================================================
+
+def score_resume(
+    resume_fields: dict,
+    jd_fields: dict
+) -> dict:
+
+    resume_skills = resume_fields.get(
+        "skills",
+        []
+    ) or []
+
+    required_skills = jd_fields.get(
+        "required_skills",
+        []
+    ) or []
+
+    # --------------------------------------------------------
+    # Skill score
+    # --------------------------------------------------------
+
+    skill_ratio, matched, missing = _skill_overlap(
+        resume_skills,
+        required_skills
+    )
+
+    skill_score = skill_ratio * 100
+
+    # --------------------------------------------------------
+    # Experience score
+    # --------------------------------------------------------
+
+    candidate_years = resume_fields.get(
+        "years_experience",
+        0
+    ) or 0
+
+    required_years = jd_fields.get(
+        "min_years_experience",
+        0
+    ) or 0
+
+    experience_ratio = _experience_score(
+        candidate_years,
+        required_years
+    )
+
+    experience_score = (
+        experience_ratio * 100
+    )
+
+    # --------------------------------------------------------
+    # Education score
+    # --------------------------------------------------------
+
+    education_ratio = _education_score(
+        resume_fields.get(
+            "education"
+        )
+    )
+
+    education_score = (
+        education_ratio * 100
+    )
+
+    # --------------------------------------------------------
+    # Final score
+    # --------------------------------------------------------
+
+    final_score = (
+        SKILL_WEIGHT *
+        skill_ratio
+        +
+        EXPERIENCE_WEIGHT *
+        experience_ratio
+        +
+        EDUCATION_WEIGHT *
+        education_ratio
+    ) * 100
+
+    meets_experience = (
+        candidate_years >=
+        required_years
+    )
 
     return {
-        "final_score": round(final, 2),
-        "semantic_score": round(semantic_score * 100, 2),
-        "skill_overlap_score": round(overlap_ratio * 100, 2),
+
+        "final_score": round(
+            final_score,
+            2
+        ),
+
+        "skill_score": round(
+            skill_score,
+            2
+        ),
+
+        "experience_score": round(
+            experience_score,
+            2
+        ),
+
+        "education_score": round(
+            education_score,
+            2
+        ),
+
+        "skill_overlap_score": round(
+            skill_score,
+            2
+        ),
+
+        "semantic_score": 0,
+
         "matched_skills": matched,
+
         "missing_skills": missing,
-        "years_experience": exp_candidate,
-        "meets_experience_requirement": meets_experience,
+
+        "years_experience": candidate_years,
+
+        "required_experience": required_years,
+
+        "meets_experience_requirement":
+            meets_experience
     }
